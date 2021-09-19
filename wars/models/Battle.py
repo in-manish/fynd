@@ -24,7 +24,7 @@ class Battle(models.Model):
     defender_commanders = models.ManyToManyField(
         Warrior, related_name='defender_commanders_battles'
     )
-    is_attacker_win = models.NullBooleanField(default=None)
+    is_attacker_win = models.BooleanField(default=None, null=True)
     attackers = models.ManyToManyField(Warrior, related_name='attackers_battles')
     defenders = models.ManyToManyField(Warrior, related_name='defenders_battles')
     battle_type = models.ForeignKey(BattleType, related_name='battle_type_battles', on_delete=models.SET_NULL,

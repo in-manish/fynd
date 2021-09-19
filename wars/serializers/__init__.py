@@ -1,1 +1,2 @@
 from .BattleSerializer import BattleSerializer
+from .BattleTypeSerializer import BattleTypeSerializer
