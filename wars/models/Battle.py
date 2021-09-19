@@ -11,7 +11,7 @@ class Battle(models.Model):
     """
     title = models.CharField(max_length=200)
     year = models.PositiveSmallIntegerField()
-    battle_number = models.PositiveIntegerField(unique=True, db_index=True)
+    battle_number = models.PositiveIntegerField(unique=True, db_index=True, null=True)
     attacker_king = models.ForeignKey(
         Warrior, related_name='attacker_king_battles', on_delete=models.CASCADE, null=True
     )
