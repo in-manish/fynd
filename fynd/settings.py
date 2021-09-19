@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import logging.config
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -16,13 +17,13 @@ from dotenv import dotenv_values
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-config = dotenv_values('.env')
+CONFIG = dotenv_values('.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config.get('SECRET_KEY')
+SECRET_KEY = CONFIG.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 3rd party
     'drf_yasg',
-    'rest_framework.authtoken',
+    'rest_framework',
     # custom apps
     'accounts',
     'wars',
@@ -85,11 +86,11 @@ WSGI_APPLICATION = 'fynd.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config.get('DB_NAME'),
-        'USER': config.get('DB_USERNAME'),
-        'PASSWORD': config.get('DB_PASSWORD'),
-        'HOST': config.get('DB_HOST'),
-        'PORT': config.get('DB_PORT'),
+        'NAME': CONFIG.get('DB_NAME'),
+        'USER': CONFIG.get('DB_USERNAME'),
+        'PASSWORD': CONFIG.get('DB_PASSWORD'),
+        'HOST': CONFIG.get('DB_HOST'),
+        'PORT': CONFIG.get('DB_PORT'),
     }
 }
 
@@ -136,6 +137,8 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'accounts.User'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
@@ -146,4 +149,52 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-AUTH_USER_MODEL = 'accounts.User'
+LOGGING_CONFIG = None
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'file': {
+            'format': '[%(asctime)s] %(name)-12s::%(funcName)s::%(lineno)d %(levelname)-8s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': CONFIG.get('CONSOLE_LOG_LEVEL', 'ERROR'),
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': CONFIG.get('FILE_LOG_LEVEL', 'ERROR'),
+            'class': 'logging.FileHandler',
+            'filename': f"{BASE_DIR}/logs/debug.log",
+            'formatter': 'file',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rest_framework': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+        },
+        'fynd': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'wars': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+        'accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+        },
+    },
+})
