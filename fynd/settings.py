@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # 3rd party
     'drf_yasg',
     'rest_framework',
+    'rest_framework.authtoken',
     # custom apps
     'accounts',
     'wars',

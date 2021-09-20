@@ -11,4 +11,8 @@ urlpatterns = [
 
     url(r'^battle_types/(?P<battle_type_id>[0-9]+)$', view=BattleTypeRetrieveAPIView.as_view(),
         name='Retrieve BattleType Detail'),
+
+    url(r'^warriors$', view=WarriorListAPIView.as_view(), name='Warriors List'),
+
+    url(r'^warriors/(?P<warrior_id>[0-9]+)$', view=WarriorRetrieveAPIView.as_view(), name='Retrieve Warrior Detail'),
 ]
