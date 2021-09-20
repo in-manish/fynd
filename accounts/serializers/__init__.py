@@ -1,1 +1,2 @@
+from .RegisterUserSerializer import RegisterUserSerializer
 from .UserSerializer import UserSerializer
