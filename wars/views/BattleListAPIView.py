@@ -1,4 +1,6 @@
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from wars.helpers.battle_helper import get_search_queryset, BattleAggregatedData
@@ -11,6 +13,8 @@ class BattleListApiView(ListAPIView):
         return: List of battle details
     """
     queryset = Battle.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = BattleSerializer
 
     def list(self, request, *args, **kwargs):
