@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import logging.config
+import os
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -60,6 +61,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'fynd.urls'
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 
 TEMPLATES = [
     {
@@ -145,7 +150,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'PAGE_SIZE': 10,
 }
 
