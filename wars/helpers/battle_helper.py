@@ -1,6 +1,5 @@
 from typing import Dict
 
-from django.core.cache import cache
 from django.db import connection
 from django.db.models import Q
 
@@ -19,10 +18,6 @@ class BattleAggregatedData:
         """
             all combined aggregated data
         """
-        cache_key = 'battle_aggr_data_key'
-        data = cache.get(cache_key)
-        if data:
-            return data
         with connection.cursor() as cursor:
             data = {
                 **self.get_battle_type_battles_aggr_data(cursor),
@@ -30,8 +25,6 @@ class BattleAggregatedData:
                 **self.get_defender_max_battle_aggr_data(cursor),
                 **self.get_min_max_avg_defender_aggr_data(cursor)
             }
-        expire_in = 60 * 60 * 24  # 1day
-        cache.set(cache_key, data, expire_in)
         return data
 
     def get_battle_type_battles_aggr_data(self, cursor):
