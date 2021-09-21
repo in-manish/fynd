@@ -57,4 +57,15 @@ python manage.py createsuper
 
 <hr>
 
+To access API obtain Auth token using api
+
+```shell
+curl --location --request POST '{{HOST_NAME}}/accounts/obtain_token' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "<email_id>",
+    "password": "<password>"
+}'
+```
+
 ### [APIs Docs](http://13.232.245.139/redoc/)
