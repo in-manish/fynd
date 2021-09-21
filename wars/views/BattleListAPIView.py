@@ -18,6 +18,12 @@ class BattleListApiView(ListAPIView):
     serializer_class = BattleSerializer
 
     def get_sorted_queryset(self, queryset):
+        """
+            ---Sort Queryset----
+            sort_fields: fields on sorting can apply
+
+            eg. ?sort_for=title;sort_order=desc
+        """
         sort_fields = ['title', 'year', 'battle_number',
                        'attacker_king', 'defender_king',
                        'battle_type', 'created_at', 'modified_at']

@@ -8,6 +8,8 @@ from wars.models import Battle, BattleType, Region, Location, Warrior
 
 class Command(BaseCommand):
     """
+        Created Records  from csv file to Table
+
         python manage.py source_data --file_path=<file_path>
     """
 

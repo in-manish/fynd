@@ -9,7 +9,7 @@ class Battle(models.Model):
     """
         Stores Battles detail
     """
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, db_index=True)
     year = models.PositiveSmallIntegerField()
     battle_number = models.PositiveIntegerField(unique=True, db_index=True, null=True)
     attacker_king = models.ForeignKey(
