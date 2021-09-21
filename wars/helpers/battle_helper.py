@@ -1,7 +1,6 @@
 from typing import Dict
 
-from django.db import connection
-from django.db.models import Q
+from django.db.models import Q, Count, F, Avg, Min, Max
 
 __all__ = (
     'BattleAggregatedData',
@@ -11,137 +10,70 @@ __all__ = (
 
 class BattleAggregatedData:
     def __init__(self, queryset):
-        self.battle_ids = list(queryset.values_list('id', flat=True))
-        self.tuple_battle_ids = tuple(self.battle_ids)
+        self.queryset = queryset
 
     def get_battle_aggregated_data(self) -> Dict:
         """
             all combined aggregated data
         """
-        with connection.cursor() as cursor:
-            data = {
-                **self.get_battle_type_battles_aggr_data(cursor),
-                **self.get_attacker_max_battle_aggr_data(cursor),
-                **self.get_defender_max_battle_aggr_data(cursor),
-                **self.get_min_max_avg_defender_aggr_data(cursor)
-            }
+        data = {
+            **self.get_battle_type_battles_aggr_data(),
+            **self.get_attacker_max_battle_aggr_data(),
+            **self.get_defender_max_battle_aggr_data(),
+            **self.get_min_max_avg_defender_aggr_data()
+        }
         return data
 
-    def get_battle_type_battles_aggr_data(self, cursor):
+    def get_battle_type_battles_aggr_data(self):
         """
             Count of Battles per battle type
         """
-        data = {'battle_types': []}
-        if not self.tuple_battle_ids:
-            return data
-        sql_query = f"""
-            SELECT battle_type.id, battle_type.title, COUNT(battle_type.id) FROM wars_battle AS battle
-            
-            INNER JOIN wars_battletype AS battle_type
-            ON battle_type.id=battle.battle_type_id
-            
-            WHERE battle.id IN {self.tuple_battle_ids}
-            
-            GROUP BY battle_type.id, battle_type.title
-        """
-        cursor.execute(sql_query)
-        results = cursor.fetchall()
-
-        for result in results:
-            obj = {
-                'id': result[0],
-                'title': result[1],
-                'battle_count': result[2]
-            }
-            data['battle_types'].append(obj)
+        values = (self.queryset
+                  .values('battle_type_id')
+                  .annotate(battle_count=Count('battle_type_id'),
+                            id=F('battle_type_id'),
+                            title=F('battle_type__title'))
+                  .values('id', 'title', 'battle_count'))
+        data = {'battle_types': values}
         return data
 
-    def get_min_max_avg_defender_aggr_data(self, cursor):
+    def get_min_max_avg_defender_aggr_data(self):
         """
             Min, Max, Avg of defender size
         """
-        data = {
-            'defender_statistics': {
-                'min_defender_size': 0,
-                'max_defender_size': 0,
-                'avg_defender_size': 0,
-            }
-        }
-        if not self.tuple_battle_ids:
-            return data
-        sql_query = f"""
-                SELECT MIN(defender_size), MAX(defender_size), AVG(defender_size) FROM wars_battle
-                WHERE id IN {self.tuple_battle_ids}
-            """
-        cursor.execute(sql_query)
-        result = cursor.fetchone()
-        data = {
-            'defender_statistics': {
-                'min_defender_size': result[0],
-                'max_defender_size': result[1],
-                'avg_defender_size': result[2],
-            }
-        }
+        aggregated_data = (self.queryset
+                           .aggregate(min_defender_size=Min('defender_size'),
+                                      max_defender_size=Max('defender_size'),
+                                      avg_defender_size=Avg('defender_size'))
+                           )
+        data = {'defender_statistics': aggregated_data}
         return data
 
-    def get_attacker_max_battle_aggr_data(self, cursor):
+    def get_attacker_max_battle_aggr_data(self):
         """
             Most active Attacker King data
         """
-        data = {'max_battle_attacker': {}}
-        if not self.tuple_battle_ids:
-            return data
-        sql_query = f"""
-                SELECT attacker_king_id, warrior.name, COUNT(attacker_king_id) FROM wars_battle AS battle
-                
-                INNER JOIN wars_warrior AS warrior
-                ON  battle.attacker_king_id=warrior.id
-                
-                WHERE battle.id IN {self.tuple_battle_ids}
-    
-                GROUP BY attacker_king_id, warrior.name
-    
-                ORDER BY COUNT(attacker_king_id) DESC LIMIT 1;
-            """
-        cursor.execute(sql_query)
-        result = cursor.fetchone()
+        data: dict = (self.queryset
+                      .values('attacker_king_id', name=F('attacker_king__name'))
+                      .annotate(battle_count=Count('attacker_king_id'))
+                      .order_by('-battle_count').first())
+        data['id'] = data.pop('attacker_king_id')
         data = {
-            'max_battle_attacker': {
-                'id': result[0],
-                'name': result[1],
-                'battle_count': result[2]
-            }
+            'max_battle_attacker': data
         }
         return data
 
-    def get_defender_max_battle_aggr_data(self, cursor):
+    def get_defender_max_battle_aggr_data(self):
         """
             Most active Defender King data
         """
-        data = {'max_battle_defender': {}}
-        if not self.tuple_battle_ids:
-            return data
-        sql_query = f"""
-                SELECT defender_king_id, warrior.name, COUNT(defender_king_id) FROM wars_battle AS battle
-                
-                INNER JOIN wars_warrior AS warrior
-                ON  battle.defender_king_id=warrior.id
-                
-                WHERE battle.id IN {self.tuple_battle_ids}
-
-                GROUP BY defender_king_id, warrior.name
-
-                ORDER BY COUNT(defender_king_id) DESC LIMIT 1;
-            """
-        cursor.execute(sql_query)
-        cursor.execute(sql_query)
-        result = cursor.fetchone()
+        data: dict = (self.queryset
+                      .values('defender_king_id', name=F('defender_king__name'))
+                      .annotate(battle_count=Count('defender_king_id'))
+                      .order_by('-battle_count').first())
+        data['id'] = data.pop('defender_king_id')
         data = {
-            'max_battle_defender': {
-                'id': result[0],
-                'name': result[1],
-                'battle_count': result[2]
-            }
+            'max_battle_defender': data
         }
         return data
 
